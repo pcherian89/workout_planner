@@ -67,7 +67,7 @@ if selected_mode == "Hybrid":
         st.markdown(plan_days[day_index].strip().rstrip("*"))
     
         # ========== DAILY FEEDBACK FORM ========== #
-        st.markdown("----")
+        
         st.subheader("🧠 Daily Check-In")
     
         col1, col2 = st.columns([1, 2])
