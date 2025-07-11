@@ -43,7 +43,6 @@ if selected_mode == "Hybrid":
                     messages=[{"role": "user", "content": prompt}]
                 )
 
-                )
                 output = response['choices'][0]['message']['content']
                 st.success("Here’s your custom hybrid plan:")
                 st.markdown(output)
