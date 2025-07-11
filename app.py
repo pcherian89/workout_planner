@@ -29,23 +29,24 @@ if selected_mode == "Hybrid":
 
     if submit:
         with st.spinner("🧠 Generating your hybrid training plan..."):
-            equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
-            prompt = (
-                f"Create a 7-day hybrid training plan that combines bodybuilding, HYROX, and CrossFit elements. "
-                f"The user is a {experience.lower()} athlete with a goal to {goal.lower()} and can train {days} days per week. "
-                f"Available equipment includes: {equipment_str}. "
-                f"Each day should include a workout name, main focus, and a brief description."
-            )
-
-            response = openai.chat.completions.create(
-                model="gpt-4o",
-                messages=[{"role": "user", "content": prompt}]
-            )
-            
-            output = response.choices[0].message.content
-            st.success("Here’s your custom hybrid plan:")
-            st.markdown(output)
-
+            try:
+                equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
+                prompt = (
+                    f"Create a 7-day hybrid training plan that combines bodybuilding, HYROX, and CrossFit elements. "
+                    f"The user is a {experience.lower()} athlete with a goal to {goal.lower()} and can train {days} days per week. "
+                    f"Available equipment includes: {equipment_str}. "
+                    f"Each day should include a workout name, main focus, and a brief description."
+                )
+    
+                response = openai.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": prompt}]
+                )
+    
+                output = response.choices[0].message.content
+                st.success("Here’s your custom hybrid plan:")
+                st.markdown(output)
+    
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
 
