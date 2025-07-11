@@ -27,6 +27,7 @@ if selected_mode == "Hybrid":
         )
         submit = st.form_submit_button("Generate My Weekly Plan")
 
+    # ========== SUBMIT BUTTON ========== #
     if submit:
         with st.spinner("🧠 Generating your hybrid training plan..."):
             try:
@@ -46,56 +47,61 @@ if selected_mode == "Hybrid":
                     messages=[{"role": "user", "content": prompt}]
                 )
     
-                full_plan = response.choices[0].message.content
+                # Save to session_state
+                st.session_state["full_plan"] = response.choices[0].message.content
+                plan_days = st.session_state["full_plan"].split("Day ")[1:]
+                st.session_state["plan_days"] = ["Day " + day.strip() for day in plan_days]
                 st.success("✅ Your hybrid plan is ready!")
-    
-                # --- Split full plan into individual days ---
-                plan_days = full_plan.split("Day ")[1:]
-                plan_days = ["Day " + day.strip() for day in plan_days]
-    
-                # --- Day selector ---
-                selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
-                day_index = int(selected_day.split(" ")[1]) - 1
-    
-                st.markdown(f"### 📋 {selected_day} Plan")
-                st.markdown(plan_days[day_index].strip().rstrip("*"))
-
-    
-                st.markdown("---")
-                st.subheader("🧠 Daily Check-In")
-                
-                energy = st.slider("How is your energy today?", 1, 10, 7)
-                soreness = st.selectbox("Muscle soreness level?", ["None", "Mild", "Moderate", "Severe"])
-                injury_note = st.text_input("Any pain, discomfort, or injuries?")
-                
-                if st.button("🔁 Adjust Today’s Workout if Needed"):
-                    if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
-                        st.warning("⚠️ Adjusting your workout based on your feedback...")
-                
-                        feedback_prompt = (
-                            f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
-                            f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
-                            f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
-                            f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
-                        )
-                
-                        try:
-                            adjustment_response = openai.chat.completions.create(
-                                model="gpt-4o",
-                                messages=[{"role": "user", "content": feedback_prompt}]
-                            )
-                            adjusted_plan = adjustment_response.choices[0].message.content
-                            st.success("✅ Adjusted Workout Plan:")
-                            st.markdown(adjusted_plan)
-                
-                        except Exception as e:
-                            st.error(f"Error adjusting workout: {e}")
-                    else:
-                        st.info("✅ You’re good to go! No need to modify today’s plan.")
-
     
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
+    
+    # ========== SHOW PLAN IF STORED ========== #
+    if "plan_days" in st.session_state:
+        plan_days = st.session_state["plan_days"]
+    
+        selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
+        day_index = int(selected_day.split(" ")[1]) - 1
+    
+        st.markdown(f"### 📋 {selected_day} Plan")
+        st.markdown(plan_days[day_index].strip().rstrip("*"))
+    
+        # ========== DAILY FEEDBACK FORM ========== #
+        st.markdown("----")
+        st.subheader("🧠 Daily Check-In")
+    
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
+        with col2:
+            soreness = st.selectbox("Soreness Level", ["None", "Mild", "Moderate", "Severe"])
+    
+        injury_note = st.text_input("Injury / Pain Notes", placeholder="Describe any pain or injuries...")
+    
+        if st.button("🔁 Adjust Today’s Workout if Needed"):
+            if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
+                st.warning("⚠️ Adjusting your workout based on your feedback...")
+    
+                feedback_prompt = (
+                    f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
+                    f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
+                    f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
+                    f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
+                )
+    
+                try:
+                    adjustment_response = openai.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[{"role": "user", "content": feedback_prompt}]
+                    )
+                    adjusted_plan = adjustment_response.choices[0].message.content
+                    st.success("✅ Adjusted Workout Plan:")
+                    st.markdown(adjusted_plan)
+    
+                except Exception as e:
+                    st.error(f"Error adjusting workout: {e}")
+            else:
+                st.info("✅ You’re good to go! No need to modify today’s plan.")
 
 
 # === Placeholder for other modes ===
