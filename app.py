@@ -38,9 +38,11 @@ if selected_mode == "Hybrid":
             )
 
             try:
-                response = openai.ChatCompletion.create(
-                    model="gpt-4",
+                response = openai.chat.completions.create(
+                    model="gpt-4o",  # or use "gpt-4-turbo" if you're not on GPT-4o
                     messages=[{"role": "user", "content": prompt}]
+                )
+
                 )
                 output = response['choices'][0]['message']['content']
                 st.success("Here’s your custom hybrid plan:")
