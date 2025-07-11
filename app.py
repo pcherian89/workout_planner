@@ -37,15 +37,15 @@ if selected_mode == "Hybrid":
                 f"Each day should include a workout name, main focus, and a brief description."
             )
 
-            try:
-                response = openai.chat.completions.create(
-                    model="gpt-4o",  # or use "gpt-4-turbo" if you're not on GPT-4o
-                    messages=[{"role": "user", "content": prompt}]
-                )
+            response = openai.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            
+            output = response.choices[0].message.content
+            st.success("Here’s your custom hybrid plan:")
+            st.markdown(output)
 
-                output = response['choices'][0]['message']['content']
-                st.success("Here’s your custom hybrid plan:")
-                st.markdown(output)
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
 
