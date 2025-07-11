@@ -110,5 +110,5 @@ else:
     st.info("This mode will be added soon.")
 
 # === Footer ===
-st.markdown("---")
+
 st.caption("Built with 💡 by [Pothen]")
