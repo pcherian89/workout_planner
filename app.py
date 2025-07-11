@@ -40,16 +40,27 @@ if selected_mode == "Hybrid":
                     f"Use professional formatting: exercises, sets/reps, time-based intervals. Include compound lifts, metcons, and movement variety. "
                     f"Use terms like EMOM, AMRAP, zone pacing, or split times when appropriate. This should feel like elite training, not general advice."
                 )
-
     
                 response = openai.chat.completions.create(
                     model="gpt-4o",
                     messages=[{"role": "user", "content": prompt}]
                 )
     
-                output = response.choices[0].message.content
-                st.success("Here’s your custom hybrid plan:")
-                st.markdown(output)
+                full_plan = response.choices[0].message.content
+                st.success("✅ Your hybrid plan is ready!")
+    
+                # --- Split full plan into individual days ---
+                plan_days = full_plan.split("Day ")[1:]
+                plan_days = ["Day " + day.strip() for day in plan_days]
+    
+                # --- Day selector ---
+                selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
+                day_index = int(selected_day.split(" ")[1]) - 1
+    
+                st.markdown(f"### 📋 {selected_day} Plan")
+                st.markdown(plan_days[day_index])
+    
+                # ✅ Ready for next step: feedback form right here
     
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
