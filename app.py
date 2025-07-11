@@ -56,7 +56,7 @@ if selected_mode == "Hybrid":
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
     
-    # ========== SHOW PLAN IF STORED ========== #
+   # ======== SHOW PLAN IF STORED ========
     if "plan_days" in st.session_state:
         plan_days = st.session_state["plan_days"]
     
@@ -66,10 +66,13 @@ if selected_mode == "Hybrid":
         st.markdown(f"### 📋 {selected_day} Plan")
         st.markdown(plan_days[day_index].strip().rstrip("*"))
     
-        # ========== DAILY FEEDBACK FORM ========== #
-        
+        # Remove extra spacing (tight layout)
+        st.markdown("<div style='margin-top: -10px;'></div>", unsafe_allow_html=True)
+    
+        # ======== DAILY FEEDBACK FORM ========
         st.subheader("🧠 Daily Check-In")
     
+        # Use columns for cleaner layout
         col1, col2 = st.columns([1, 2])
         with col1:
             energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
@@ -102,7 +105,6 @@ if selected_mode == "Hybrid":
                     st.error(f"Error adjusting workout: {e}")
             else:
                 st.info("✅ You’re good to go! No need to modify today’s plan.")
-
 
 # === Placeholder for other modes ===
 else:
