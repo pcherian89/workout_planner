@@ -58,7 +58,8 @@ if selected_mode == "Hybrid":
                 day_index = int(selected_day.split(" ")[1]) - 1
     
                 st.markdown(f"### 📋 {selected_day} Plan")
-                st.markdown(plan_days[day_index])
+                st.markdown(plan_days[day_index].strip().rstrip("*"))
+
     
                 st.markdown("---")
                 st.subheader("🧠 Daily Check-In")
