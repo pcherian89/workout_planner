@@ -62,6 +62,27 @@ if selected_mode == "Hybrid":
     # === Show Plan if Stored ===
     if "plan_days" in st.session_state:
         plan_days = st.session_state["plan_days"]
+        # === Show Weekly Overview Summary ===
+        st.markdown("### 📊 Weekly Overview Summary")
+        
+        weekly_summary = []
+        for i, day in enumerate(plan_days):
+            lines = day.strip().split("\n")
+            title = lines[0] if len(lines) > 0 else f"Day {i+1}"
+            
+            # Try to get focus (e.g., "Focus: Pull / Conditioning")
+            focus_line = next((line for line in lines if "focus" in line.lower()), "")
+            
+            weekly_summary.append({
+                "Day": f"Day {i+1}",
+                "Title": title.replace("Day", "").strip(": "),
+                "Focus": focus_line.replace("Focus:", "").strip() if focus_line else "—"
+            })
+        
+        import pandas as pd
+        summary_df = pd.DataFrame(weekly_summary)
+        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
         selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
         day_index = int(selected_day.split(" ")[1]) - 1
 
