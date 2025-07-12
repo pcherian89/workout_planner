@@ -107,6 +107,5 @@ st.markdown("---")
 st.caption("Built with 💡 by [Pothen]")
 
 
-    # === Footer ===
-    st.caption("Built with 💡 by [Pothen]")
+
 
