@@ -58,44 +58,35 @@ if selected_mode == "Hybrid":
     # === Show Plan if Stored ===
     if "plan_days" in st.session_state:
         plan_days = st.session_state["plan_days"]
-
         selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
         day_index = int(selected_day.split(" ")[1]) - 1
-
+    
         st.markdown(f"### 📋 {selected_day} Plan")
-
-        # ✅ FIX: Prevent gap and line before check-in
-        st.markdown(
-            f"""
-            <div style='margin-top: -30px; margin-bottom: -30px; padding: 0;'>
-                {plan_days[day_index].strip().rstrip('*')}
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
+        
+        # ✅ FIX: Use clean markdown to display the full day plan
+        st.markdown(plan_days[day_index])  # THIS renders the workout correctly without cutting off
+    
         # === Daily Check-In Form ===
-        st.markdown("<div style='margin-top: -10px;'></div>", unsafe_allow_html=True)
         st.subheader("🧠 Daily Check-In")
         col1, col2 = st.columns([1, 2])
         with col1:
             energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
         with col2:
             soreness = st.selectbox("Soreness Level", ["None", "Mild", "Moderate", "Severe"])
-
+    
         injury_note = st.text_input("Injury / Pain Notes", placeholder="Describe any pain or injuries...")
-
+    
         if st.button("🔁 Adjust Today’s Workout if Needed"):
             if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
                 st.warning("⚠️ Adjusting your workout based on your feedback...")
-
+    
                 feedback_prompt = (
                     f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
                     f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
                     f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
                     f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
                 )
-
+    
                 try:
                     adjustment_response = openai.chat.completions.create(
                         model="gpt-4o",
@@ -104,7 +95,7 @@ if selected_mode == "Hybrid":
                     adjusted_plan = adjustment_response.choices[0].message.content
                     st.success("✅ Adjusted Workout Plan:")
                     st.markdown(adjusted_plan)
-
+    
                 except Exception as e:
                     st.error(f"Error adjusting workout: {e}")
             else:
