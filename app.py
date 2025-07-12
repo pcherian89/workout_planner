@@ -63,11 +63,13 @@ if selected_mode == "Hybrid":
     
         st.markdown(f"### 📋 {selected_day} Plan")
     
+        # 🧹 Clean and validate plan output
         workout_text = plan_days[day_index].strip()
-        if len(workout_text) > 10:  # Avoid showing garbage
+        if len(workout_text) > 10 and "**" not in workout_text.strip():  # Avoid garbage like just **
             st.markdown(workout_text)
         else:
-            st.warning("⚠️ This day's workout plan appears empty or corrupted. Please regenerate.")
+            st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
+
     
         # === Daily Check-In Form ===
         st.subheader("🧠 Daily Check-In")
