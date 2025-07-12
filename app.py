@@ -64,16 +64,19 @@ if selected_mode == "Hybrid":
         plan_days = st.session_state["plan_days"]
         selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
         day_index = int(selected_day.split(" ")[1]) - 1
-
+    
         st.markdown(f"### 📋 {selected_day} Plan")
         workout_text = plan_days[day_index].strip()
-
-        # ✅ Only show warning if it's truly empty or garbage
+        workout_text = re.sub(r"\n*---+\n*", "", workout_text).strip()
+    
         if len(workout_text) > 30 and "workout" in workout_text.lower():
             st.markdown(workout_text)
         else:
             st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
-
+    
+        # 🧹 Reduce space before Daily Check-In
+        st.markdown("<div style='margin-top: -1.5rem;'></div>", unsafe_allow_html=True)
+    
         # === Daily Check-In Form ===
         st.subheader("🧠 Daily Check-In")
         col1, col2 = st.columns([1, 2])
