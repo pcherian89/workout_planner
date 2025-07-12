@@ -1,8 +1,10 @@
+# === Import Libraries ===
 import streamlit as st
 import openai
 import re
+import pandas as pd
 
-# === 🔐 API Key Setup ===
+# === API Key Setup ===
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
 # === Sidebar Navigation ===
@@ -13,13 +15,33 @@ selected_mode = st.sidebar.radio("Choose Your Mode:", ["Bodybuilding", "HYROX", 
 st.title("💪 AI-Powered Training Platform")
 st.markdown("Your intelligent coach for Bodybuilding, HYROX, and CrossFit — or a mix of all.")
 
-# === HYBRID MODE: Weekly Plan Generator ===
-if selected_mode == "Hybrid":
-    st.header("🔀 Hybrid Plan Generator")
+# === MODE CONFIGURATIONS ===
+mode_config = {
+    "Bodybuilding": {
+        "prompt_prefix": "Create a bodybuilding-focused training plan.",
+        "goals": ["Build Muscle", "Increase Strength"],
+    },
+    "HYROX": {
+        "prompt_prefix": "Create a HYROX-specific weekly training plan for competitive athletes.",
+        "goals": ["Race Preparation", "Improve Time"],
+    },
+    "CrossFit": {
+        "prompt_prefix": "Create a weekly CrossFit training plan for a performance-oriented athlete.",
+        "goals": ["Boost Performance", "Increase Work Capacity"],
+    },
+    "Hybrid": {
+        "prompt_prefix": "Create a hybrid training plan that combines bodybuilding, HYROX, and CrossFit.",
+        "goals": ["Build Muscle", "Lose Fat", "Boost Endurance", "Hybrid Performance"],
+    }
+}
 
-    with st.form("hybrid_form"):
+# === PLAN GENERATOR SECTION ===
+if selected_mode:
+    st.header(f"{selected_mode} Plan Generator")
+
+    with st.form(f"{selected_mode.lower()}_form"):
         st.subheader("Customize Your Weekly Plan")
-        goal = st.selectbox("Your Goal", ["Build Muscle", "Lose Fat", "Boost Endurance", "Hybrid Performance"])
+        goal = st.selectbox("Your Goal", mode_config[selected_mode]["goals"])
         experience = st.radio("Experience Level", ["Beginner", "Intermediate", "Advanced"])
         days = st.slider("Training Days per Week", 3, 7, 5)
         equipment = st.multiselect(
@@ -30,17 +52,18 @@ if selected_mode == "Hybrid":
 
     # === SUBMIT LOGIC ===
     if submit:
-        with st.spinner("🧠 Generating your hybrid training plan..."):
+        with st.spinner(f"🧠 Generating your {selected_mode.lower()} training plan..."):
             try:
                 equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
+                base_prompt = mode_config[selected_mode]["prompt_prefix"]
                 prompt = (
-                    f"Create a hybrid training plan that combines bodybuilding, HYROX, and CrossFit. "
+                    f"{base_prompt} "
                     f"The user is a {experience.lower()} athlete with a goal to {goal.lower()} and can train {days} days per week. "
                     f"Available equipment includes: {equipment_str}. "
                     f"Only generate {days} training days — do NOT include rest or recovery days. "
                     f"Each training day should include a name, the main focus (e.g. push, pull, engine, power), and a detailed, advanced workout. "
                     f"Use professional formatting: exercises, sets/reps, time-based intervals. Include compound lifts, metcons, and movement variety. "
-                    f"Use terms like EMOM, AMRAP, zone pacing, or split times when appropriate. This should feel like elite training, not general advice."
+                    f"Use terms like EMOM, AMRAP, zone pacing, or split times when appropriate."
                 )
 
                 response = openai.chat.completions.create(
@@ -50,90 +73,73 @@ if selected_mode == "Hybrid":
 
                 full_text = response.choices[0].message.content
                 st.session_state["full_plan"] = full_text
-
-                # ✅ Extract each "Day X" section using regex
-                plan_blocks = re.findall(r"(Day \d+[\s\S]*?)(?=Day \d+|$)", full_text)
-                st.session_state["plan_days"] = plan_blocks
-                st.success("✅ Your hybrid plan is ready!")
+                st.session_state["plan_days"] = re.findall(r"(Day \d+[\s\S]*?)(?=Day \d+|$)", full_text)
+                st.success("✅ Your plan is ready!")
 
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
 
-    # === Show Plan if Stored ===
-    if "plan_days" in st.session_state:
-        plan_days = st.session_state["plan_days"]
-        # === Show Weekly Overview Summary ===
-        st.markdown("### 📊 Weekly Overview Summary")
-        
-        weekly_summary = []
-        for i, day in enumerate(plan_days):
-            lines = day.strip().split("\n")
-            title = lines[0] if len(lines) > 0 else f"Day {i+1}"
-            
-            # Try to get focus (e.g., "Focus: Pull / Conditioning")
-            focus_line = next((line for line in lines if "focus" in line.lower()), "")
-            
-            weekly_summary.append({
-                "Day": f"Day {i+1}",
-                "Title": title.replace("Day", "").strip(": "),
-                "Focus": focus_line.replace("Focus:", "").strip() if focus_line else "—"
-            })
-        
-        import pandas as pd
-        summary_df = pd.DataFrame(weekly_summary)
-        st.dataframe(summary_df, use_container_width=True, hide_index=True)
+# === PLAN VIEWER & CHECK-IN ===
+if "plan_days" in st.session_state:
+    plan_days = st.session_state["plan_days"]
 
-        selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
-        day_index = int(selected_day.split(" ")[1]) - 1
+    st.markdown("### \U0001F4CA Weekly Overview Summary")
+    weekly_summary = []
+    for i, day in enumerate(plan_days):
+        lines = day.strip().split("\n")
+        title = lines[0] if len(lines) > 0 else f"Day {i+1}"
+        focus_line = next((line for line in lines if "focus" in line.lower()), "")
+        weekly_summary.append({
+            "Day": f"Day {i+1}",
+            "Title": title.replace("Day", "").strip(": "),
+            "Focus": focus_line.replace("Focus:", "").strip() if focus_line else "—"
+        })
 
-        st.markdown(f"### 📋 {selected_day} Plan")
-        workout_text = plan_days[day_index].strip()
+    summary_df = pd.DataFrame(weekly_summary)
+    st.dataframe(summary_df, use_container_width=True, hide_index=True)
 
-        # ✅ Only show warning if it's truly empty or garbage
-        if len(workout_text) > 30 and "workout" in workout_text.lower():
-            st.markdown(workout_text)
-        else:
-            st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
+    selected_day = st.selectbox("\U0001F4C5 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
+    day_index = int(selected_day.split(" ")[1]) - 1
 
-        # === Daily Check-In Form ===
-        st.subheader("🧠 Daily Check-In")
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
-        with col2:
-            soreness = st.selectbox("Soreness Level", ["None", "Mild", "Moderate", "Severe"])
+    st.markdown(f"### \U0001F4CB {selected_day} Plan")
+    workout_text = plan_days[day_index].strip()
 
-        injury_note = st.text_input("Injury / Pain Notes", placeholder="Describe any pain or injuries...")
+    if len(workout_text) > 30 and "workout" in workout_text.lower():
+        st.markdown(workout_text)
+    else:
+        st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
 
-        if st.button("🔁 Adjust Today’s Workout if Needed"):
-            if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
-                st.warning("⚠️ Adjusting your workout based on your feedback...")
+    # === Daily Check-In ===
+    st.subheader("\U0001F9E0 Daily Check-In")
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
+    with col2:
+        soreness = st.selectbox("Soreness Level", ["None", "Mild", "Moderate", "Severe"])
 
-                feedback_prompt = (
-                    f"Here is today's original workout:\n\n{workout_text}\n\n"
-                    f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
-                    f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
-                    f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
+    injury_note = st.text_input("Injury / Pain Notes", placeholder="Describe any pain or injuries...")
+
+    if st.button("🔁 Adjust Today’s Workout if Needed"):
+        if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
+            st.warning("⚠️ Adjusting your workout based on your feedback...")
+            feedback_prompt = (
+                f"Here is today's original workout:\n\n{workout_text}\n\n"
+                f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
+                f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
+                f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
+            )
+            try:
+                adjustment_response = openai.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": feedback_prompt}]
                 )
-
-                try:
-                    adjustment_response = openai.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[{"role": "user", "content": feedback_prompt}]
-                    )
-                    adjusted_plan = adjustment_response.choices[0].message.content
-                    st.success("✅ Adjusted Workout Plan:")
-                    st.markdown(adjusted_plan)
-
-                except Exception as e:
-                    st.error(f"Error adjusting workout: {e}")
-            else:
-                st.info("✅ You’re good to go! No need to modify today’s plan.")
-
-# === PLACEHOLDER for other modes ===
-else:
-    st.header(f"{selected_mode} Mode")
-    st.info("This mode will be added soon.")
+                adjusted_plan = adjustment_response.choices[0].message.content
+                st.success("✅ Adjusted Workout Plan:")
+                st.markdown(adjusted_plan)
+            except Exception as e:
+                st.error(f"Error adjusting workout: {e}")
+        else:
+            st.info("✅ You’re good to go! No need to modify today’s plan.")
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
