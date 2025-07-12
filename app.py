@@ -51,9 +51,9 @@ if selected_mode == "Hybrid":
                 full_text = response.choices[0].message.content
                 st.session_state["full_plan"] = full_text
 
-                # ✅ Extract each "Day X" section properly
-                days_split = re.findall(r"(Day \d+.*?)(?=Day \d+|$)", full_text, re.DOTALL)
-                st.session_state["plan_days"] = days_split
+                # ✅ Extract each "Day X" section using regex
+                plan_blocks = re.findall(r"(Day \d+[\s\S]*?)(?=Day \d+|$)", full_text)
+                st.session_state["plan_days"] = plan_blocks
                 st.success("✅ Your hybrid plan is ready!")
 
             except Exception as e:
@@ -68,7 +68,8 @@ if selected_mode == "Hybrid":
         st.markdown(f"### 📋 {selected_day} Plan")
         workout_text = plan_days[day_index].strip()
 
-        if len(workout_text) > 20 and "**" not in workout_text.strip():
+        # ✅ Only show warning if it's truly empty or garbage
+        if len(workout_text) > 30 and "workout" in workout_text.lower():
             st.markdown(workout_text)
         else:
             st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
@@ -88,7 +89,7 @@ if selected_mode == "Hybrid":
                 st.warning("⚠️ Adjusting your workout based on your feedback...")
 
                 feedback_prompt = (
-                    f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
+                    f"Here is today's original workout:\n\n{workout_text}\n\n"
                     f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
                     f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
                     f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
@@ -115,6 +116,7 @@ else:
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
+
 
 
 
