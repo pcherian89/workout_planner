@@ -104,7 +104,7 @@ if "plan_days" in st.session_state:
     st.markdown(f"### \U0001F4CB {selected_day} Plan")
     workout_text = plan_days[day_index].strip()
 
-    if len(workout_text) > 30 and "workout" in workout_text.lower():
+    if len(workout_text) > 50:
         st.markdown(workout_text)
     else:
         st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
