@@ -1,5 +1,6 @@
 import streamlit as st
 import openai
+import re
 
 # === 🔐 API Key Setup ===
 openai.api_key = st.secrets["OPENAI_API_KEY"]
@@ -47,9 +48,12 @@ if selected_mode == "Hybrid":
                     messages=[{"role": "user", "content": prompt}]
                 )
 
-                st.session_state["full_plan"] = response.choices[0].message.content
-                plan_days = st.session_state["full_plan"].split("Day ")[1:]
-                st.session_state["plan_days"] = ["Day " + day.strip() for day in plan_days]
+                full_text = response.choices[0].message.content
+                st.session_state["full_plan"] = full_text
+
+                # ✅ Extract each "Day X" section properly
+                days_split = re.findall(r"(Day \d+.*?)(?=Day \d+|$)", full_text, re.DOTALL)
+                st.session_state["plan_days"] = days_split
                 st.success("✅ Your hybrid plan is ready!")
 
             except Exception as e:
@@ -60,17 +64,15 @@ if selected_mode == "Hybrid":
         plan_days = st.session_state["plan_days"]
         selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
         day_index = int(selected_day.split(" ")[1]) - 1
-    
+
         st.markdown(f"### 📋 {selected_day} Plan")
-    
-        # 🧹 Clean and validate plan output
         workout_text = plan_days[day_index].strip()
-        if len(workout_text) > 10 and "**" not in workout_text.strip():  # Avoid garbage like just **
+
+        if len(workout_text) > 20 and "**" not in workout_text.strip():
             st.markdown(workout_text)
         else:
             st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
 
-    
         # === Daily Check-In Form ===
         st.subheader("🧠 Daily Check-In")
         col1, col2 = st.columns([1, 2])
@@ -78,20 +80,20 @@ if selected_mode == "Hybrid":
             energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
         with col2:
             soreness = st.selectbox("Soreness Level", ["None", "Mild", "Moderate", "Severe"])
-    
+
         injury_note = st.text_input("Injury / Pain Notes", placeholder="Describe any pain or injuries...")
-    
+
         if st.button("🔁 Adjust Today’s Workout if Needed"):
             if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
                 st.warning("⚠️ Adjusting your workout based on your feedback...")
-    
+
                 feedback_prompt = (
                     f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
                     f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
                     f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
                     f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
                 )
-    
+
                 try:
                     adjustment_response = openai.chat.completions.create(
                         model="gpt-4o",
@@ -100,12 +102,11 @@ if selected_mode == "Hybrid":
                     adjusted_plan = adjustment_response.choices[0].message.content
                     st.success("✅ Adjusted Workout Plan:")
                     st.markdown(adjusted_plan)
-    
+
                 except Exception as e:
                     st.error(f"Error adjusting workout: {e}")
             else:
                 st.info("✅ You’re good to go! No need to modify today’s plan.")
-
 
 # === PLACEHOLDER for other modes ===
 else:
@@ -114,6 +115,7 @@ else:
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
+
 
 
 
