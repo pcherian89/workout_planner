@@ -64,7 +64,7 @@ if selected_mode == "Hybrid":
         st.markdown(plan_days[day_index].strip().rstrip("*"))
 
         # === Daily Check-In Form ===
-        st.markdown("### ")  # Spacer
+        st.markdown("<div style='margin-top: -10px; margin-bottom: 10px;'></div>", unsafe_allow_html=True)
         st.subheader("🧠 Daily Check-In")
         col1, col2 = st.columns([1, 2])
         with col1:
