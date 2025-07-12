@@ -12,7 +12,7 @@ selected_mode = st.sidebar.radio("Choose Your Mode:", ["Bodybuilding", "HYROX", 
 st.title("💪 AI-Powered Training Platform")
 st.markdown("Your intelligent coach for Bodybuilding, HYROX, and CrossFit — or a mix of all.")
 
-# === HYBRID MODE: Weekly Plan Generator ===
+# === HYBRID MODE IMPLEMENTATION ===
 if selected_mode == "Hybrid":
     st.header("🔀 Hybrid Plan Generator")
 
@@ -27,7 +27,6 @@ if selected_mode == "Hybrid":
         )
         submit = st.form_submit_button("Generate My Weekly Plan")
 
-    # ========== SUBMIT BUTTON ========== #
     if submit:
         with st.spinner("🧠 Generating your hybrid training plan..."):
             try:
@@ -41,41 +40,32 @@ if selected_mode == "Hybrid":
                     f"Use professional formatting: exercises, sets/reps, time-based intervals. Include compound lifts, metcons, and movement variety. "
                     f"Use terms like EMOM, AMRAP, zone pacing, or split times when appropriate. This should feel like elite training, not general advice."
                 )
-    
                 response = openai.chat.completions.create(
                     model="gpt-4o",
                     messages=[{"role": "user", "content": prompt}]
                 )
-    
-                # Save to session_state
+
+                # Store results
                 st.session_state["full_plan"] = response.choices[0].message.content
                 plan_days = st.session_state["full_plan"].split("Day ")[1:]
                 st.session_state["plan_days"] = ["Day " + day.strip() for day in plan_days]
                 st.success("✅ Your hybrid plan is ready!")
-    
+
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
 
-    # ======== SHOW PLAN IF STORED ========
+    # === Show Plan if Generated ===
     if "plan_days" in st.session_state:
         plan_days = st.session_state["plan_days"]
-
         selected_day = st.selectbox("📅 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
         day_index = int(selected_day.split(" ")[1]) - 1
 
         st.markdown(f"### 📋 {selected_day} Plan")
-        st.markdown(
-            f"<div style='margin-bottom: -25px; padding-bottom: 0;'>{plan_days[day_index].strip().rstrip('*')}</div>",
-            unsafe_allow_html=True
-        )
+        st.markdown(plan_days[day_index].strip().rstrip("*"))
 
-        # No empty "###", no awkward line
-        # No st.markdown("---") above Check-In
-        st.markdown("<div style='margin-top: -10px;'></div>", unsafe_allow_html=True)
-
-        # ======== DAILY FEEDBACK FORM ========
+        # === Daily Check-In Form ===
+        st.markdown("### ")  # Spacer
         st.subheader("🧠 Daily Check-In")
-
         col1, col2 = st.columns([1, 2])
         with col1:
             energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
@@ -100,19 +90,22 @@ if selected_mode == "Hybrid":
                         model="gpt-4o",
                         messages=[{"role": "user", "content": feedback_prompt}]
                     )
-                    adjusted_plan = adjustment_response.choices[0].message.content
                     st.success("✅ Adjusted Workout Plan:")
-                    st.markdown(adjusted_plan)
-
+                    st.markdown(adjustment_response.choices[0].message.content)
                 except Exception as e:
                     st.error(f"Error adjusting workout: {e}")
             else:
                 st.info("✅ You’re good to go! No need to modify today’s plan.")
 
-    # === Placeholder for other modes ===
-    else:
-        st.header(f"{selected_mode} Mode")
-        st.info("This mode will be added soon.")
+# === Other Modes Placeholder ===
+elif selected_mode in ["Bodybuilding", "HYROX", "CrossFit"]:
+    st.header(f"{selected_mode} Mode")
+    st.info("This mode will be added soon.")
+
+# === Footer ===
+st.markdown("---")
+st.caption("Built with 💡 by [Pothen]")
+
 
     # === Footer ===
     st.caption("Built with 💡 by [Pothen]")
