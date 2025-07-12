@@ -56,7 +56,7 @@ if selected_mode == "Hybrid":
             except Exception as e:
                 st.error(f"❌ Error generating plan: {e}")
     
-   # ======== SHOW PLAN IF STORED ========
+    # ======== SHOW PLAN IF STORED ========
     if "plan_days" in st.session_state:
         plan_days = st.session_state["plan_days"]
     
@@ -64,10 +64,11 @@ if selected_mode == "Hybrid":
         day_index = int(selected_day.split(" ")[1]) - 1
     
         st.markdown(f"### 📋 {selected_day} Plan")
-        st.markdown(plan_days[day_index].strip().rstrip("*"))
-    
-        # Remove extra spacing (tight layout)
-        st.markdown("<div style='margin-top: -10px;'></div>", unsafe_allow_html=True)
+        st.markdown(
+            f"<div style='margin-bottom: -10px; padding-bottom: 0;'>{plan_days[day_index].strip().rstrip('*')}</div>",
+            unsafe_allow_html=True
+        )
+        st.markdown("<div style='margin-top: -30px;'></div>", unsafe_allow_html=True)
     
         # ======== DAILY FEEDBACK FORM ========
         st.subheader("🧠 Daily Check-In")
@@ -105,12 +106,11 @@ if selected_mode == "Hybrid":
                     st.error(f"Error adjusting workout: {e}")
             else:
                 st.info("✅ You’re good to go! No need to modify today’s plan.")
-
-# === Placeholder for other modes ===
-else:
-    st.header(f"{selected_mode} Mode")
-    st.info("This mode will be added soon.")
-
-# === Footer ===
-
-st.caption("Built with 💡 by [Pothen]")
+    
+    # === Placeholder for other modes ===
+    else:
+        st.header(f"{selected_mode} Mode")
+        st.info("This mode will be added soon.")
+    
+    # === Footer ===
+    st.caption("Built with 💡 by [Pothen]")
