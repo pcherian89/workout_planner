@@ -62,9 +62,12 @@ if selected_mode == "Hybrid":
         day_index = int(selected_day.split(" ")[1]) - 1
     
         st.markdown(f"### 📋 {selected_day} Plan")
-        
-        # ✅ FIX: Use clean markdown to display the full day plan
-        st.markdown(plan_days[day_index])  # THIS renders the workout correctly without cutting off
+    
+        workout_text = plan_days[day_index].strip()
+        if len(workout_text) > 10:  # Avoid showing garbage
+            st.markdown(workout_text)
+        else:
+            st.warning("⚠️ This day's workout plan appears empty or corrupted. Please regenerate.")
     
         # === Daily Check-In Form ===
         st.subheader("🧠 Daily Check-In")
@@ -100,6 +103,7 @@ if selected_mode == "Hybrid":
                     st.error(f"Error adjusting workout: {e}")
             else:
                 st.info("✅ You’re good to go! No need to modify today’s plan.")
+
 
 # === PLACEHOLDER for other modes ===
 else:
