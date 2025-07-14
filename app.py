@@ -60,6 +60,8 @@ if selected_mode:
                 f"{base_prompt} "
                 f"The user is a {experience.lower()} level athlete with a primary goal to {goal.lower()}. "
                 f"They can train {days} days per week using the following equipment: {equipment_str}. "
+                f"Only use the equipment listed. Do NOT include any machines or tools not mentioned. "
+                f"If the equipment is 'bodyweight only', design a fully functional program without added gear.\n"
                 f"\n\nGenerate exactly {days} advanced, structured workout days. Do NOT include rest or recovery days. "
                 f"Each training day should include:\n"
                 f"- A unique title\n"
