@@ -57,14 +57,22 @@ if selected_mode:
                 equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
                 base_prompt = mode_config[selected_mode]["prompt_prefix"]
                 prompt = (
-                    f"{base_prompt} "
-                    f"The user is a {experience.lower()} athlete with a goal to {goal.lower()} and can train {days} days per week. "
-                    f"Available equipment includes: {equipment_str}. "
-                    f"Only generate {days} training days — do NOT include rest or recovery days. "
-                    f"Each training day should include a name, the main focus (e.g. push, pull, engine, power), and a detailed, advanced workout. "
-                    f"Use professional formatting: exercises, sets/reps, time-based intervals. Include compound lifts, metcons, and movement variety. "
-                    f"Use terms like EMOM, AMRAP, zone pacing, or split times when appropriate."
-                )
+                f"{base_prompt} "
+                f"The user is a {experience.lower()} level athlete with a primary goal to {goal.lower()}. "
+                f"They can train {days} days per week using the following equipment: {equipment_str}. "
+                f"\n\nGenerate exactly {days} advanced, structured workout days. Do NOT include rest or recovery days. "
+                f"Each training day should include:\n"
+                f"- A unique title\n"
+                f"- Main training focus (e.g. Push Strength, Pull Power, Engine Conditioning)\n"
+                f"- Detailed warm-up section (include dynamic movements or mobility drills)\n"
+                f"- Primary workout segment (e.g., barbell or compound lift with sets/reps)\n"
+                f"- Conditioning or metcon (e.g., EMOM, AMRAP, interval sprints)\n"
+                f"- Optional accessory or core work (e.g., 3 sets of 15 glute bridges)\n"
+                f"- Cooldown or mobility finish (e.g., stretching or foam rolling)\n\n"
+                f"Ensure the workouts feel purposeful and challenging, suitable for the user's level. "
+                f"Use proper formatting and variety across days."
+            )
+
 
                 response = openai.chat.completions.create(
                     model="gpt-4o",
