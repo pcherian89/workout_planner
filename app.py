@@ -7,32 +7,41 @@ import pandas as pd
 # === API Key Setup ===
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# === Apply Dark Theme via Custom CSS ===
+# === Custom Styling for Dark Theme ===
 st.markdown("""
     <style>
-        body {
-            background-color: #0e1117;
-            color: #f5f5f5;
-        }
-        .stApp {
-            background-color: #0e1117;
-        }
-        .stButton>button {
-            background-color: #6c63ff;
-            color: white;
-            font-weight: bold;
-            border-radius: 8px;
-        }
-        .stSelectbox>div>div {
-            color: black !important;
-        }
-        .stDataFrame, .stDataFrame div {
-            background-color: #1e1e2f !important;
-            color: #f5f5f5 !important;
-        }
-        .css-1d391kg {
-            background-color: #0e1117 !important;
-        }
+    /* Fix dropdown background in dark mode */
+    .stSelectbox div[data-baseweb="select"] > div {
+        background-color: #1e1e1e !important;
+        color: #fff !important;
+    }
+
+    .stSlider, .stRadio, .stSelectbox, .stMultiSelect {
+        color: #ffffff !important;
+    }
+
+    /* Style the data table */
+    thead tr th {
+        color: #ffffff !important;
+        background-color: #262730 !important;
+    }
+
+    tbody tr td {
+        background-color: #1e1e1e !important;
+        color: #ffffff !important;
+    }
+
+    .stDataFrame {
+        border: 1px solid #333;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    /* General UI padding and contrast */
+    .block-container {
+        padding-top: 2rem;
+    }
+
     </style>
 """, unsafe_allow_html=True)
 
@@ -42,7 +51,7 @@ selected_mode = st.sidebar.radio("Choose Your Mode:", ["Bodybuilding", "HYROX", 
 
 # === Header ===
 st.title("💪 AI-Powered Training Platform")
-st.markdown("Your intelligent coach for **Bodybuilding**, **HYROX**, and **CrossFit** — or a mix of all.")
+st.markdown("Your intelligent coach for Bodybuilding, HYROX, and CrossFit — or a mix of all.")
 
 # === MODE CONFIGURATIONS ===
 mode_config = {
@@ -66,7 +75,7 @@ mode_config = {
 
 # === PLAN GENERATOR SECTION ===
 if selected_mode:
-    st.header(f"🛠️ {selected_mode} Plan Generator")
+    st.header(f"{selected_mode} Plan Generator")
 
     with st.form(f"{selected_mode.lower()}_form"):
         st.subheader("⚙️ Customize Your Weekly Plan")
@@ -139,7 +148,12 @@ if "plan_days" in st.session_state:
     day_index = int(selected_day.split(" ")[1]) - 1
 
     st.markdown(f"### 🏋️ {selected_day} Plan")
-    st.markdown(f"```markdown\n{plan_days[day_index].strip()}\n```")
+    workout_text = plan_days[day_index].strip()
+
+    if len(workout_text) > 50:
+        st.markdown(workout_text)
+    else:
+        st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
 
     # === Daily Check-In ===
     st.subheader("🧠 Daily Check-In")
@@ -155,7 +169,7 @@ if "plan_days" in st.session_state:
         if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
             st.warning("⚠️ Adjusting your workout based on your feedback...")
             feedback_prompt = (
-                f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
+                f"Here is today's original workout:\n\n{workout_text}\n\n"
                 f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
                 f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
                 f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
@@ -167,7 +181,7 @@ if "plan_days" in st.session_state:
                 )
                 adjusted_plan = adjustment_response.choices[0].message.content
                 st.success("✅ Adjusted Workout Plan:")
-                st.markdown(f"```markdown\n{adjusted_plan}\n```")
+                st.markdown(adjusted_plan)
             except Exception as e:
                 st.error(f"Error adjusting workout: {e}")
         else:
@@ -175,6 +189,7 @@ if "plan_days" in st.session_state:
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
+
 
 
 
