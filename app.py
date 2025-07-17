@@ -7,13 +7,42 @@ import pandas as pd
 # === API Key Setup ===
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
+# === Apply Dark Theme via Custom CSS ===
+st.markdown("""
+    <style>
+        body {
+            background-color: #0e1117;
+            color: #f5f5f5;
+        }
+        .stApp {
+            background-color: #0e1117;
+        }
+        .stButton>button {
+            background-color: #6c63ff;
+            color: white;
+            font-weight: bold;
+            border-radius: 8px;
+        }
+        .stSelectbox>div>div {
+            color: black !important;
+        }
+        .stDataFrame, .stDataFrame div {
+            background-color: #1e1e2f !important;
+            color: #f5f5f5 !important;
+        }
+        .css-1d391kg {
+            background-color: #0e1117 !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # === Sidebar Navigation ===
 st.sidebar.title("🏋️ Workout Modes")
 selected_mode = st.sidebar.radio("Choose Your Mode:", ["Bodybuilding", "HYROX", "CrossFit", "Hybrid"])
 
 # === Header ===
 st.title("💪 AI-Powered Training Platform")
-st.markdown("Your intelligent coach for Bodybuilding, HYROX, and CrossFit — or a mix of all.")
+st.markdown("Your intelligent coach for **Bodybuilding**, **HYROX**, and **CrossFit** — or a mix of all.")
 
 # === MODE CONFIGURATIONS ===
 mode_config = {
@@ -37,44 +66,42 @@ mode_config = {
 
 # === PLAN GENERATOR SECTION ===
 if selected_mode:
-    st.header(f"{selected_mode} Plan Generator")
+    st.header(f"🛠️ {selected_mode} Plan Generator")
 
     with st.form(f"{selected_mode.lower()}_form"):
-        st.subheader("Customize Your Weekly Plan")
-        goal = st.selectbox("Your Goal", mode_config[selected_mode]["goals"])
-        experience = st.radio("Experience Level", ["Beginner", "Intermediate", "Advanced"])
-        days = st.slider("Training Days per Week", 3, 7, 5)
+        st.subheader("⚙️ Customize Your Weekly Plan")
+        goal = st.selectbox("🎯 Your Goal", mode_config[selected_mode]["goals"])
+        experience = st.radio("📈 Experience Level", ["Beginner", "Intermediate", "Advanced"])
+        days = st.slider("📅 Training Days per Week", 3, 7, 5)
         equipment = st.multiselect(
-            "Available Equipment",
+            "🏋️ Available Equipment",
             ["Dumbbells", "Barbell", "Rower", "Sled", "Kettlebells", "Pull-up Bar", "Bodyweight Only"]
         )
-        submit = st.form_submit_button("Generate My Weekly Plan")
+        submit = st.form_submit_button("🚀 Generate My Weekly Plan")
 
-    # === SUBMIT LOGIC ===
     if submit:
         with st.spinner(f"🧠 Generating your {selected_mode.lower()} training plan..."):
             try:
                 equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
                 base_prompt = mode_config[selected_mode]["prompt_prefix"]
                 prompt = (
-                f"{base_prompt} "
-                f"The user is a {experience.lower()} level athlete with a primary goal to {goal.lower()}. "
-                f"They can train {days} days per week using the following equipment: {equipment_str}. "
-                f"Only use the equipment listed. Do NOT include any machines or tools not mentioned. "
-                f"If the equipment is 'bodyweight only', design a fully functional program without added gear.\n"
-                f"\n\nGenerate exactly {days} advanced, structured workout days. Do NOT include rest or recovery days. "
-                f"Each training day should include:\n"
-                f"- A unique title\n"
-                f"- Main training focus (e.g. Push Strength, Pull Power, Engine Conditioning)\n"
-                f"- Detailed warm-up section (include dynamic movements or mobility drills)\n"
-                f"- Primary workout segment (e.g., barbell or compound lift with sets/reps)\n"
-                f"- Conditioning or metcon (e.g., EMOM, AMRAP, interval sprints)\n"
-                f"- Optional accessory or core work (e.g., 3 sets of 15 glute bridges)\n"
-                f"- Cooldown or mobility finish (e.g., stretching or foam rolling)\n\n"
-                f"Ensure the workouts feel purposeful and challenging, suitable for the user's level. "
-                f"Use proper formatting and variety across days."
-            )
-
+                    f"{base_prompt} "
+                    f"The user is a {experience.lower()} level athlete with a primary goal to {goal.lower()}. "
+                    f"They can train {days} days per week using the following equipment: {equipment_str}. "
+                    f"Only use the equipment listed. Do NOT include any machines or tools not mentioned. "
+                    f"If the equipment is 'bodyweight only', design a fully functional program without added gear.\n"
+                    f"\n\nGenerate exactly {days} advanced, structured workout days. Do NOT include rest or recovery days. "
+                    f"Each training day should include:\n"
+                    f"- A unique title\n"
+                    f"- Main training focus (e.g. Push Strength, Pull Power, Engine Conditioning)\n"
+                    f"- Detailed warm-up section (include dynamic movements or mobility drills)\n"
+                    f"- Primary workout segment (e.g., barbell or compound lift with sets/reps)\n"
+                    f"- Conditioning or metcon (e.g., EMOM, AMRAP, interval sprints)\n"
+                    f"- Optional accessory or core work (e.g., 3 sets of 15 glute bridges)\n"
+                    f"- Cooldown or mobility finish (e.g., stretching or foam rolling)\n\n"
+                    f"Ensure the workouts feel purposeful and challenging, suitable for the user's level. "
+                    f"Use proper formatting and variety across days."
+                )
 
                 response = openai.chat.completions.create(
                     model="gpt-4o",
@@ -93,7 +120,7 @@ if selected_mode:
 if "plan_days" in st.session_state:
     plan_days = st.session_state["plan_days"]
 
-    st.markdown("### \U0001F4CA Weekly Overview Summary")
+    st.markdown("### 🗓️ Weekly Overview")
     weekly_summary = []
     for i, day in enumerate(plan_days):
         lines = day.strip().split("\n")
@@ -108,19 +135,14 @@ if "plan_days" in st.session_state:
     summary_df = pd.DataFrame(weekly_summary)
     st.dataframe(summary_df, use_container_width=True, hide_index=True)
 
-    selected_day = st.selectbox("\U0001F4C5 Choose a day to view:", [f"Day {i+1}" for i in range(len(plan_days))])
+    selected_day = st.selectbox("📌 Choose a Day", [f"Day {i+1}" for i in range(len(plan_days))])
     day_index = int(selected_day.split(" ")[1]) - 1
 
-    st.markdown(f"### \U0001F4CB {selected_day} Plan")
-    workout_text = plan_days[day_index].strip()
-
-    if len(workout_text) > 50:
-        st.markdown(workout_text)
-    else:
-        st.warning("⚠️ This day's workout plan is missing or malformed. Please regenerate it.")
+    st.markdown(f"### 🏋️ {selected_day} Plan")
+    st.markdown(f"```markdown\n{plan_days[day_index].strip()}\n```")
 
     # === Daily Check-In ===
-    st.subheader("\U0001F9E0 Daily Check-In")
+    st.subheader("🧠 Daily Check-In")
     col1, col2 = st.columns([1, 2])
     with col1:
         energy = st.slider("Energy", 1, 10, 7, help="How energetic do you feel today?")
@@ -133,7 +155,7 @@ if "plan_days" in st.session_state:
         if energy <= 4 or soreness in ["Moderate", "Severe"] or injury_note.strip():
             st.warning("⚠️ Adjusting your workout based on your feedback...")
             feedback_prompt = (
-                f"Here is today's original workout:\n\n{workout_text}\n\n"
+                f"Here is today's original workout:\n\n{plan_days[day_index]}\n\n"
                 f"The user reports: Energy = {energy}/10, Soreness = {soreness}, Notes = '{injury_note}'.\n\n"
                 f"Please modify this workout to reduce strain, avoid aggravating injuries, and maintain a productive session. "
                 f"Keep the structure but swap high-intensity or affected movements with gentler alternatives."
@@ -145,7 +167,7 @@ if "plan_days" in st.session_state:
                 )
                 adjusted_plan = adjustment_response.choices[0].message.content
                 st.success("✅ Adjusted Workout Plan:")
-                st.markdown(adjusted_plan)
+                st.markdown(f"```markdown\n{adjusted_plan}\n```")
             except Exception as e:
                 st.error(f"Error adjusting workout: {e}")
         else:
@@ -153,7 +175,6 @@ if "plan_days" in st.session_state:
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
-
 
 
 
