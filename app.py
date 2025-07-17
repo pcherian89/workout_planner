@@ -93,24 +93,74 @@ if selected_mode:
             try:
                 equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
                 base_prompt = mode_config[selected_mode]["prompt_prefix"]
-                prompt = (
-                    f"{base_prompt} "
-                    f"The user is a {experience.lower()} level athlete with a primary goal to {goal.lower()}. "
-                    f"They can train {days} days per week using the following equipment: {equipment_str}. "
-                    f"Only use the equipment listed. Do NOT include any machines or tools not mentioned. "
-                    f"If the equipment is 'bodyweight only', design a fully functional program without added gear.\n"
-                    f"\n\nGenerate exactly {days} advanced, structured workout days. Do NOT include rest or recovery days. "
-                    f"Each training day should include:\n"
-                    f"- A unique title\n"
-                    f"- Main training focus (e.g. Push Strength, Pull Power, Engine Conditioning)\n"
-                    f"- Detailed warm-up section (include dynamic movements or mobility drills)\n"
-                    f"- Primary workout segment (e.g., barbell or compound lift with sets/reps)\n"
-                    f"- Conditioning or metcon (e.g., EMOM, AMRAP, interval sprints)\n"
-                    f"- Optional accessory or core work (e.g., 3 sets of 15 glute bridges)\n"
-                    f"- Cooldown or mobility finish (e.g., stretching or foam rolling)\n\n"
-                    f"Ensure the workouts feel purposeful and challenging, suitable for the user's level. "
-                    f"Use proper formatting and variety across days."
-                )
+                # Dynamic prompt builder based on selected mode
+                if selected_mode == "Bodybuilding":
+                    prompt = (
+                        f"{base_prompt} "
+                        f"The user is a {experience.lower()} level bodybuilder aiming to {goal.lower()}. "
+                        f"They train {days} days/week and have access to: {equipment_str}. "
+                        f"Only use listed equipment. No cardio machines unless specified.\n\n"
+                        f"Generate exactly {days} detailed lifting workouts. No rest days.\n"
+                        f"Each day should include:\n"
+                        f"- A unique title (e.g., Chest Domination, Arm Annihilation)\n"
+                        f"- Target muscle groups (e.g., Chest/Triceps)\n"
+                        f"- Warm-up (mobility, light reps)\n"
+                        f"- Main hypertrophy-focused workout (compound + isolation exercises with sets/reps)\n"
+                        f"- Optional finisher (drop sets, supersets, pump work)\n"
+                        f"- Cooldown (stretching, foam rolling)\n\n"
+                        f"Use bodybuilding-specific language and progressive overload concepts. Avoid generic functional training."
+                    )
+                
+                elif selected_mode == "HYROX":
+                    prompt = (
+                        f"{base_prompt} "
+                        f"The user is a {experience.lower()} level HYROX athlete with a goal to {goal.lower()}. "
+                        f"They can train {days} days/week using: {equipment_str}.\n\n"
+                        f"Create exactly {days} competitive HYROX-style training days (no recovery days).\n"
+                        f"Each day must include:\n"
+                        f"- A unique title (e.g., Wall Ball Blitz, Row-Sled Crusher)\n"
+                        f"- HYROX movement focus (e.g., sled push/pull, farmer’s carry, wall balls)\n"
+                        f"- Functional warm-up (hips, posterior chain, shoulder prep)\n"
+                        f"- Workout block with race-specific stations (e.g., Run 1km → Sled Push → Burpee Broad Jumps)\n"
+                        f"- Pacing & breathing strategies\n"
+                        f"- Optional mobility or zone-2 cool down\n\n"
+                        f"Make it feel like actual race simulation and prep. Use real HYROX-style movements. Avoid bodybuilding style."
+                    )
+                
+                elif selected_mode == "CrossFit":
+                    prompt = (
+                        f"{base_prompt} "
+                        f"The user is a {experience.lower()} level CrossFit athlete aiming to {goal.lower()}. "
+                        f"They train {days} days/week using the following equipment: {equipment_str}.\n\n"
+                        f"Generate exactly {days} challenging WODs. No rest days.\n"
+                        f"Each day should follow this format:\n"
+                        f"- WOD Title (e.g., 'The Engine', 'Barbell Hell')\n"
+                        f"- Focus (e.g., Gymnastics, Olympic Lifting, Mixed Modal)\n"
+                        f"- Warm-up (functional/dynamic, specific to the WOD)\n"
+                        f"- Strength or Skill segment (e.g., 5x3 Clean & Jerk)\n"
+                        f"- Metcon or EMOM/AMRAP (clearly defined time/reps)\n"
+                        f"- Optional accessory/core (GHD, kettlebells, etc.)\n"
+                        f"- Cooldown or ROMWOD-style finish\n\n"
+                        f"Make it read like a real CrossFit box programming. Include Rx scaling options if needed."
+                    )
+                
+                elif selected_mode == "Hybrid":
+                    prompt = (
+                        f"{base_prompt} "
+                        f"The user is a {experience.lower()} hybrid athlete with a primary goal to {goal.lower()}. "
+                        f"They can train {days} days/week using: {equipment_str}.\n\n"
+                        f"Create exactly {days} hybrid-style sessions that combine strength, conditioning, and endurance. "
+                        f"No recovery days.\n"
+                        f"Each day should include:\n"
+                        f"- Title (e.g., Full Body Grinder, Engine + Pull)\n"
+                        f"- Hybrid Focus (e.g., Strength + HIIT, Tempo Lifting + Endurance)\n"
+                        f"- Warm-up (blended mobility + activation)\n"
+                        f"- Primary lift or compound movement (e.g., Deadlift 5x5)\n"
+                        f"- Functional circuit or run-based metcon (e.g., 3 rounds: 800m run, DB thrusters, burpees)\n"
+                        f"- Optional finisher or EMOM/core work\n"
+                        f"- Stretching or cooldown\n\n"
+                        f"Ensure blend of CrossFit, HYROX and bodybuilding elements. Do not stick to one style per day. Mix smartly."
+                    )
 
                 response = openai.chat.completions.create(
                     model="gpt-4o",
