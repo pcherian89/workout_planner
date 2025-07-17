@@ -7,44 +7,6 @@ import pandas as pd
 # === API Key Setup ===
 openai.api_key = st.secrets["OPENAI_API_KEY"]
 
-# === Custom Styling for Dark Theme ===
-st.markdown("""
-    <style>
-    /* Fix dropdown background in dark mode */
-    .stSelectbox div[data-baseweb="select"] > div {
-        background-color: #1e1e1e !important;
-        color: #fff !important;
-    }
-
-    .stSlider, .stRadio, .stSelectbox, .stMultiSelect {
-        color: #ffffff !important;
-    }
-
-    /* Style the data table */
-    thead tr th {
-        color: #ffffff !important;
-        background-color: #262730 !important;
-    }
-
-    tbody tr td {
-        background-color: #1e1e1e !important;
-        color: #ffffff !important;
-    }
-
-    .stDataFrame {
-        border: 1px solid #333;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    /* General UI padding and contrast */
-    .block-container {
-        padding-top: 2rem;
-    }
-
-    </style>
-""", unsafe_allow_html=True)
-
 # === Sidebar Navigation ===
 st.sidebar.title("🏋️ Workout Modes")
 selected_mode = st.sidebar.radio("Choose Your Mode:", ["Bodybuilding", "HYROX", "CrossFit", "Hybrid"])
@@ -93,7 +55,7 @@ if selected_mode:
             try:
                 equipment_str = ", ".join(equipment) if equipment else "bodyweight only"
                 base_prompt = mode_config[selected_mode]["prompt_prefix"]
-                # Dynamic prompt builder based on selected mode
+
                 if selected_mode == "Bodybuilding":
                     prompt = (
                         f"{base_prompt} "
@@ -110,7 +72,6 @@ if selected_mode:
                         f"- Cooldown (stretching, foam rolling)\n\n"
                         f"Use bodybuilding-specific language and progressive overload concepts. Avoid generic functional training."
                     )
-                
                 elif selected_mode == "HYROX":
                     prompt = (
                         f"{base_prompt} "
@@ -126,7 +87,6 @@ if selected_mode:
                         f"- Optional mobility or zone-2 cool down\n\n"
                         f"Make it feel like actual race simulation and prep. Use real HYROX-style movements. Avoid bodybuilding style."
                     )
-                
                 elif selected_mode == "CrossFit":
                     prompt = (
                         f"{base_prompt} "
@@ -143,7 +103,6 @@ if selected_mode:
                         f"- Cooldown or ROMWOD-style finish\n\n"
                         f"Make it read like a real CrossFit box programming. Include Rx scaling options if needed."
                     )
-                
                 elif selected_mode == "Hybrid":
                     prompt = (
                         f"{base_prompt} "
@@ -239,6 +198,7 @@ if "plan_days" in st.session_state:
 
 # === Footer ===
 st.caption("Built with 💡 by [Pothen]")
+
 
 
 
